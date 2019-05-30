@@ -1,0 +1,46 @@
+<Sysmon schemaversion="4.10">
+	<!--SYSMON META CONFIG-->
+	<HashAlgorithms>md5,imphash,sha256</HashAlgorithms> <!-- Both MD5 and SHA256 are the industry-standard algorithms for identifying files -->
+	<CheckRevocation/> <!-- Check loaded drivers, log if their code-signing certificate has been revoked, in case malware stole one to sign a kernel driver -->
+
+	<!-- <ImageLoad/> --> <!-- Would manually force-on ImageLoad monitoring, even without configuration below. Included only documentation. -->
+	<!-- <ProcessAccessConfig/> --> <!-- Would manually force-on ProcessAccess monitoring, even without configuration below. Included only documentation. -->
+	<!-- <PipeMonitoringConfig/> --> <!-- Would manually force-on PipeCreated / PipeConnected events, even without configuration below. Included only documentation. -->
+
+	<EventFiltering>
+		<ProcessCreate onmatch="include">
+			<ParentImage condition="contains">mimikatz</ParentImage>
+			<Image condition="contains">mimikatz</Image>
+		</ProcessCreate>
+
+		<!--DATA: RuleName, UtcTime, SourceProcessGuid, SourceProcessId, SourceImage, TargetProcessId, TargetImage, NewThreadId, StartAddress, StartModule, StartFunction-->
+		<CreateRemoteThread onmatch="include">
+			<StartFunction condition="contains">mimikatz</StartFunction>
+			<SourceImage condition="contains">mimikatz</SourceImage>
+		</CreateRemoteThread>
+
+		<RawAccessRead onmatch="include">
+		</RawAccessRead>
+
+		<ProcessAccess onmatch="include">
+			<TargetImage condition="contains">lsass.exe</TargetImage>
+			<SourceImage condition="contains">mimikatz</SourceImage>
+		</ProcessAccess>
+		<ProcessAccess onmatch="exclude">
+			<SourceImage condition="is">C:\Windows\sysWOW64\wbem\wmiprvse.exe</SourceImage>
+			<SourceImage condition="begin with">C:\ProgramData\Microsoft\Windows Defender\platform\</SourceImage>
+			<SourceImage condition="is">C:\Windows\system32\msiexec.exe</SourceImage>
+			<SourceImage condition="is">C:\Windows\system32\svchost.exe</SourceImage>
+			<SourceImage condition="is">C:\Windows\system32\spoolsv.exe</SourceImage>
+			<SourceImage condition="contains">taskmgr</SourceImage>
+			<SourceImage condition="end with">wbem\wmiprvse.exe</SourceImage>
+			<SourceImage condition="end with">:\Windows\System32\smss.exe</SourceImage>
+			<SourceImage condition="end with">:\Windows\system32\csrss.exe</SourceImage>
+			<SourceImage condition="end with">:\Windows\system32\wininit.exe</SourceImage>
+			<SourceImage condition="is">C:\Program Files\Windows Defender\MsMpEng.exe</SourceImage>
+			<TargetImage condition="is">C:\Program Files\Windows Defender\MsMpEng.exe</TargetImage>
+			<TargetImage condition="is">C:\Windows\Sysmon.exe</TargetImage>
+			<TargetImage condition="is">C:\Windows\Sysmon64.exe</TargetImage>
+		</ProcessAccess>
+	</EventFiltering>
+</Sysmon>
